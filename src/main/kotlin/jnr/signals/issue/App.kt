@@ -1,20 +1,22 @@
 package jnr.signals.issue
 
 import jnr.constants.platform.Signal
+import jnr.posix.LibC
 import kotlin.concurrent.thread
 import jnr.posix.POSIXFactory
 import java.util.concurrent.atomic.AtomicInteger
+
+object SignalHandler : LibC.LibCSignalHandler {
+    override fun signal(sig: Int) {
+        println("Received it!")
+    }
+}
 
 fun main(args: Array<String>) {
     val received = AtomicInteger()
     val raised = AtomicInteger()
 
-    POSIXFactory.getNativePOSIX().signal(Signal.SIGWINCH) {
-        println("Received it!")
-        received.addAndGet(1)
-
-        println("Now sent ${raised.get()}, received ${received.get()}")
-    }
+    POSIXFactory.getNativePOSIX().libc().signal(Signal.SIGWINCH.value(), SignalHandler)
 
     thread(start = true, isDaemon = true) {
         while (true) {
