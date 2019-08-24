@@ -6,17 +6,17 @@ import kotlin.concurrent.thread
 import jnr.posix.POSIXFactory
 import java.util.concurrent.atomic.AtomicInteger
 
-object SignalHandler : LibC.LibCSignalHandler {
-    override fun signal(sig: Int) {
-        println("Received it!")
-    }
-}
-
 fun main(args: Array<String>) {
     val received = AtomicInteger()
     val raised = AtomicInteger()
 
-    POSIXFactory.getNativePOSIX().libc().signal(Signal.SIGWINCH.value(), SignalHandler)
+    val handler = object : LibC.LibCSignalHandler {
+        override fun signal(sig: Int) {
+            println("Received it!")
+        }
+    }
+
+    POSIXFactory.getNativePOSIX().libc().signal(Signal.SIGWINCH.value(), handler)
 
     thread(start = true, isDaemon = true) {
         while (true) {
